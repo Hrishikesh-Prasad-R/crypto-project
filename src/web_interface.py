@@ -4,20 +4,34 @@ Beautiful UI for demonstrating post-quantum cryptography
 """
 
 import streamlit as st
-from crypto_system import SecureChannel
-import time
-import plotly.graph_objects as go
-import plotly.express as px
-from Crypto.PublicKey import RSA
-from Crypto.Cipher import PKCS1_OAEP
+import sys
+from pathlib import Path
 
-# Page config
+# Page config - must be first Streamlit command
 st.set_page_config(
     page_title="Post-Quantum Crypto Demo",
     page_icon="🔒",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# Try to import and initialize crypto system with detailed error handling
+try:
+    from crypto_system import SecureChannel
+    import time
+    import plotly.graph_objects as go
+    import plotly.express as px
+    from Crypto.PublicKey import RSA
+    from Crypto.Cipher import PKCS1_OAEP
+    
+    CRYPTO_INITIALIZED = True
+    CRYPTO_ERROR = None
+    
+except Exception as e:
+    CRYPTO_INITIALIZED = False
+    CRYPTO_ERROR = e
+    import traceback
+    CRYPTO_TRACEBACK = traceback.format_exc()
 
 # Custom CSS
 st.markdown("""
@@ -52,9 +66,84 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize session state
+# Display error diagnostics if crypto system failed to initialize
+if not CRYPTO_INITIALIZED:
+    st.error("### ❌ Failed to Initialize Cryptographic System")
+    st.error(f"**Error Type:** {type(CRYPTO_ERROR).__name__}")
+    st.error(f"**Error Message:** {str(CRYPTO_ERROR)}")
+    
+    with st.expander("🔍 Full Error Traceback (click to expand)", expanded=True):
+        st.code(CRYPTO_TRACEBACK)
+    
+    st.write("---")
+    st.write("### 🔍 Diagnostic Information")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.write("**System Information:**")
+        st.write(f"- Python version: {sys.version}")
+        st.write(f"- Platform: {sys.platform}")
+        st.write(f"- Current directory: {Path.cwd()}")
+    
+    with col2:
+        src_dir = Path(__file__).parent
+        st.write("**File System:**")
+        st.write(f"- Script directory: {src_dir}")
+        
+        # Check for .so files
+        kyber_so = src_dir / "libpqcrystals_kyber768_ref.so"
+        dilithium_so = src_dir / "libpqcrystals_dilithium3_ref.so"
+        kyber_dll = src_dir / "libpqcrystals_kyber768_ref.dll"
+        dilithium_dll = src_dir / "libpqcrystals_dilithium3_ref.dll"
+        
+        st.write(f"- Kyber .so exists: {kyber_so.exists()}")
+        st.write(f"- Dilithium .so exists: {dilithium_so.exists()}")
+        st.write(f"- Kyber .dll exists: {kyber_dll.exists()}")
+        st.write(f"- Dilithium .dll exists: {dilithium_dll.exists()}")
+    
+    with st.expander("📁 All Files in Directory"):
+        files = list(src_dir.glob('*'))
+        for f in sorted(files):
+            st.write(f"- {f.name} ({f.stat().st_size} bytes)")
+    
+    st.write("---")
+    st.write("### 💡 Possible Solutions")
+    st.info("""
+    **If you're seeing this error, here's what might be wrong:**
+    
+    1. **Missing system dependencies** - The .so files need `libgomp1` installed
+       - Make sure `packages.txt` exists with `libgomp1` in it
+    
+    2. **.so files not in repository** - The shared libraries need to be committed to Git
+       - Run: `git add src/*.so && git commit -m "Add shared libraries" && git push`
+    
+    3. **Incompatible .so files** - The libraries might be compiled for a different Linux version
+       - Try recompiling on Ubuntu 22.04 or use the liboqs-python fallback
+    
+    4. **File permission issues** - The .so files might not be executable
+       - This is less likely on Streamlit Cloud but possible
+    """)
+    
+    st.stop()
+
+# Initialize session state only if crypto system loaded successfully
 if 'channel' not in st.session_state:
-    st.session_state.channel = SecureChannel()
+    try:
+        with st.spinner("Initializing cryptographic system..."):
+            st.session_state.channel = SecureChannel()
+        st.success("✓ Cryptographic system initialized successfully!")
+    except Exception as e:
+        st.error("### ❌ Failed to Create SecureChannel Instance")
+        st.error(f"**Error Type:** {type(e).__name__}")
+        st.error(f"**Error Message:** {str(e)}")
+        
+        import traceback
+        with st.expander("🔍 Full Error Traceback"):
+            st.code(traceback.format_exc())
+        
+        st.stop()
+
 if 'alice_keys' not in st.session_state:
     st.session_state.alice_keys = None
 if 'bob_keys' not in st.session_state:
@@ -268,7 +357,7 @@ def performance_analysis_page():
     
     st.subheader("⚡ Real-Time Benchmarking")
     
-    iterations = st.slider("Number of iterations:", 5, 5000, 10)
+    iterations = st.slider("Number of iterations:", 5, 100, 10)
     
     if st.button("Run Benchmark", type="primary"):
         progress_bar = st.progress(0)
