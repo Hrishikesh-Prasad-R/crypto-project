@@ -17,15 +17,15 @@ class Kyber768:
 
         # Select the appropriate library
         if system == "Windows":
-            lib_name = "./libpqcrystals_kyber768_ref.dll"
+            lib_name = "libpqcrystals_kyber768_ref.dll"
         elif system == "Linux":
-            lib_name = "./libpqcrystals_kyber768_avx2.so"
+            lib_name = "libpqcrystals_kyber768_avx2.so"
         elif system == "Darwin":  # macOS
             lib_name = "libpqcrystals_kyber768_ref.dylib"
         else:
             raise RuntimeError(f"Unsupported OS: {system}")
 
-        lib_path = lib_name
+        lib_path = base_dir / lib_name  # FIXED: Properly join Path objects
 
         # Enhanced error checking
         if not lib_path.exists():
@@ -53,36 +53,50 @@ class Kyber768:
             )
             raise OSError(error_msg) from e
         
-        # Define function signatures
-        # int pqcrystals_kyber768_ref_keypair(uint8_t *pk, uint8_t *sk)
-        self.lib.pqcrystals_kyber768_ref_keypair.argtypes = [
-            ctypes.POINTER(ctypes.c_uint8),
-            ctypes.POINTER(ctypes.c_uint8)
-        ]
-        self.lib.pqcrystals_kyber768_ref_keypair.restype = ctypes.c_int
+        # Define function signatures for AVX2 version
+        if system == "Linux":
+            # AVX2 version uses different function names
+            keypair_func = "pqcrystals_kyber768_avx2_keypair"
+            enc_func = "pqcrystals_kyber768_avx2_enc"
+            dec_func = "pqcrystals_kyber768_avx2_dec"
+        else:
+            # Reference version
+            keypair_func = "pqcrystals_kyber768_ref_keypair"
+            enc_func = "pqcrystals_kyber768_ref_enc"
+            dec_func = "pqcrystals_kyber768_ref_dec"
         
-        # int pqcrystals_kyber768_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk)
-        self.lib.pqcrystals_kyber768_ref_enc.argtypes = [
-            ctypes.POINTER(ctypes.c_uint8),
+        # int pqcrystals_kyber768_xxx_keypair(uint8_t *pk, uint8_t *sk)
+        self.keypair_func = getattr(self.lib, keypair_func)
+        self.keypair_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self.lib.pqcrystals_kyber768_ref_enc.restype = ctypes.c_int
+        self.keypair_func.restype = ctypes.c_int
         
-        # int pqcrystals_kyber768_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk)
-        self.lib.pqcrystals_kyber768_ref_dec.argtypes = [
+        # int pqcrystals_kyber768_xxx_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk)
+        self.enc_func = getattr(self.lib, enc_func)
+        self.enc_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self.lib.pqcrystals_kyber768_ref_dec.restype = ctypes.c_int
+        self.enc_func.restype = ctypes.c_int
+        
+        # int pqcrystals_kyber768_xxx_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk)
+        self.dec_func = getattr(self.lib, dec_func)
+        self.dec_func.argtypes = [
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.POINTER(ctypes.c_uint8),
+            ctypes.POINTER(ctypes.c_uint8)
+        ]
+        self.dec_func.restype = ctypes.c_int
     
     def keypair(self):
         """Generate a Kyber768 keypair"""
         pk = (ctypes.c_uint8 * KYBER768_PUBLICKEYBYTES)()
         sk = (ctypes.c_uint8 * KYBER768_SECRETKEYBYTES)()
         
-        result = self.lib.pqcrystals_kyber768_ref_keypair(pk, sk)
+        result = self.keypair_func(pk, sk)
         if result != 0:
             raise RuntimeError(f"Kyber768 keypair generation failed with code {result}")
         
@@ -97,7 +111,7 @@ class Kyber768:
         ss = (ctypes.c_uint8 * KYBER768_BYTES)()
         pk = (ctypes.c_uint8 * KYBER768_PUBLICKEYBYTES)(*public_key)
         
-        result = self.lib.pqcrystals_kyber768_ref_enc(ct, ss, pk)
+        result = self.enc_func(ct, ss, pk)
         if result != 0:
             raise RuntimeError(f"Kyber768 encapsulation failed with code {result}")
         
@@ -114,7 +128,7 @@ class Kyber768:
         ct = (ctypes.c_uint8 * KYBER768_CIPHERTEXTBYTES)(*ciphertext)
         sk = (ctypes.c_uint8 * KYBER768_SECRETKEYBYTES)(*secret_key)
         
-        result = self.lib.pqcrystals_kyber768_ref_dec(ss, ct, sk)
+        result = self.dec_func(ss, ct, sk)
         if result != 0:
             raise RuntimeError(f"Kyber768 decapsulation failed with code {result}")
         

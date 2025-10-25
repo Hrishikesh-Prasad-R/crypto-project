@@ -14,15 +14,15 @@ class Dilithium3:
         base_dir = Path(__file__).parent.absolute()
 
         if system == "Windows":
-            lib_name = "./libpqcrystals_dilithium3_ref.dll"
+            lib_name = "libpqcrystals_dilithium3_ref.dll"
         elif system == "Linux":
-            lib_name = "./libpqcrystals_dilithium3_avx2.so"
+            lib_name = "libpqcrystals_dilithium3_avx2.so"
         elif system == "Darwin":  # macOS
             lib_name = "libpqcrystals_dilithium3_ref.dylib"
         else:
             raise RuntimeError(f"Unsupported OS: {system}")
 
-        lib_path = lib_name
+        lib_path = base_dir / lib_name  # FIXED: Properly join Path objects
 
         if not lib_path.exists():
             available_files = list(base_dir.glob("*"))
@@ -48,19 +48,32 @@ class Dilithium3:
             )
             raise OSError(error_msg) from e
         
-        # Define function signatures
-        # int pqcrystals_dilithium3_ref_keypair(uint8_t *pk, uint8_t *sk)
-        self.lib.pqcrystals_dilithium3_ref_keypair.argtypes = [
+        # Define function signatures based on platform
+        if system == "Linux":
+            # AVX2 version uses different function names
+            keypair_func = "pqcrystals_dilithium3_avx2_keypair"
+            signature_func = "pqcrystals_dilithium3_avx2_signature"
+            verify_func = "pqcrystals_dilithium3_avx2_verify"
+        else:
+            # Reference version
+            keypair_func = "pqcrystals_dilithium3_ref_keypair"
+            signature_func = "pqcrystals_dilithium3_ref_signature"
+            verify_func = "pqcrystals_dilithium3_ref_verify"
+        
+        # int pqcrystals_dilithium3_xxx_keypair(uint8_t *pk, uint8_t *sk)
+        self.keypair_func = getattr(self.lib, keypair_func)
+        self.keypair_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self.lib.pqcrystals_dilithium3_ref_keypair.restype = ctypes.c_int
+        self.keypair_func.restype = ctypes.c_int
         
-        # int pqcrystals_dilithium3_ref_signature(uint8_t *sig, size_t *siglen,
+        # int pqcrystals_dilithium3_xxx_signature(uint8_t *sig, size_t *siglen,
         #                                         const uint8_t *m, size_t mlen,
         #                                         const uint8_t *ctx, size_t ctxlen,
         #                                         const uint8_t *sk)
-        self.lib.pqcrystals_dilithium3_ref_signature.argtypes = [
+        self.signature_func = getattr(self.lib, signature_func)
+        self.signature_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.POINTER(ctypes.c_size_t),
             ctypes.POINTER(ctypes.c_uint8),
@@ -69,13 +82,14 @@ class Dilithium3:
             ctypes.c_size_t,
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self.lib.pqcrystals_dilithium3_ref_signature.restype = ctypes.c_int
+        self.signature_func.restype = ctypes.c_int
         
-        # int pqcrystals_dilithium3_ref_verify(const uint8_t *sig, size_t siglen,
+        # int pqcrystals_dilithium3_xxx_verify(const uint8_t *sig, size_t siglen,
         #                                      const uint8_t *m, size_t mlen,
         #                                      const uint8_t *ctx, size_t ctxlen,
         #                                      const uint8_t *pk)
-        self.lib.pqcrystals_dilithium3_ref_verify.argtypes = [
+        self.verify_func = getattr(self.lib, verify_func)
+        self.verify_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
             ctypes.c_size_t,
             ctypes.POINTER(ctypes.c_uint8),
@@ -84,14 +98,14 @@ class Dilithium3:
             ctypes.c_size_t,
             ctypes.POINTER(ctypes.c_uint8)
         ]
-        self.lib.pqcrystals_dilithium3_ref_verify.restype = ctypes.c_int
+        self.verify_func.restype = ctypes.c_int
     
     def keypair(self):
         """Generate a Dilithium3 keypair"""
         pk = (ctypes.c_uint8 * DILITHIUM3_PUBLICKEYBYTES)()
         sk = (ctypes.c_uint8 * DILITHIUM3_SECRETKEYBYTES)()
         
-        result = self.lib.pqcrystals_dilithium3_ref_keypair(pk, sk)
+        result = self.keypair_func(pk, sk)
         if result != 0:
             raise RuntimeError(f"Dilithium3 keypair generation failed with code {result}")
         
@@ -108,7 +122,7 @@ class Dilithium3:
         ctx = (ctypes.c_uint8 * len(context))(*context) if context else None
         sk = (ctypes.c_uint8 * DILITHIUM3_SECRETKEYBYTES)(*secret_key)
         
-        result = self.lib.pqcrystals_dilithium3_ref_signature(
+        result = self.signature_func(
             sig, ctypes.byref(siglen),
             msg, len(message),
             ctx, len(context),
@@ -130,7 +144,7 @@ class Dilithium3:
         ctx = (ctypes.c_uint8 * len(context))(*context) if context else None
         pk = (ctypes.c_uint8 * DILITHIUM3_PUBLICKEYBYTES)(*public_key)
         
-        result = self.lib.pqcrystals_dilithium3_ref_verify(
+        result = self.verify_func(
             sig, len(signature),
             msg, len(message),
             ctx, len(context),
