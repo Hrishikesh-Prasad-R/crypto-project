@@ -17,15 +17,15 @@ class Kyber768:
 
         # Select the appropriate library
         if system == "Windows":
-            lib_name = "libpqcrystals_kyber768_ref.dll"
+            lib_name = "./libpqcrystals_kyber768_ref.dll"
         elif system == "Linux":
-            lib_name = "libpqcrystals_kyber768_ref.so"
+            lib_name = "./libpqcrystals_kyber768_avx2.so"
         elif system == "Darwin":  # macOS
             lib_name = "libpqcrystals_kyber768_ref.dylib"
         else:
             raise RuntimeError(f"Unsupported OS: {system}")
 
-        lib_path = base_dir / lib_name
+        lib_path = lib_name
 
         # Enhanced error checking
         if not lib_path.exists():

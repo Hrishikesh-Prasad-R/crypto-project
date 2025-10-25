@@ -14,15 +14,15 @@ class Dilithium3:
         base_dir = Path(__file__).parent.absolute()
 
         if system == "Windows":
-            lib_name = "libpqcrystals_dilithium3_ref.dll"
+            lib_name = "./libpqcrystals_dilithium3_ref.dll"
         elif system == "Linux":
-            lib_name = "libpqcrystals_dilithium3_ref.so"
+            lib_name = "./libpqcrystals_dilithium3_avx2.so"
         elif system == "Darwin":  # macOS
             lib_name = "libpqcrystals_dilithium3_ref.dylib"
         else:
             raise RuntimeError(f"Unsupported OS: {system}")
 
-        lib_path = base_dir / lib_name
+        lib_path = lib_name
 
         if not lib_path.exists():
             available_files = list(base_dir.glob("*"))
