@@ -1,5 +1,6 @@
 import ctypes
 from pathlib import Path
+import platform
 
 # Constants for Dilithium3
 DILITHIUM3_PUBLICKEYBYTES = 1952
@@ -8,9 +9,21 @@ DILITHIUM3_BYTES = 3309  # Max signature size
 
 class Dilithium3:
     def __init__(self):
-        # Load the DLL
-        dll_path = "./libpqcrystals_dilithium3_ref.dll"
-        self.lib = ctypes.CDLL(str(dll_path))
+        system = platform.system()
+        base_dir = Path(__file__).parent  # directory of this wrapper file
+
+        if system == "Windows":
+            lib_path = base_dir / "libpqcrystals_dilithium3_ref.dll"
+        elif system == "Linux":
+            lib_path = base_dir / "libpqcrystals_dilithium3_ref.so"
+        else:
+            raise RuntimeError(f"Unsupported OS: {system}")
+
+        if not lib_path.exists():
+            raise FileNotFoundError(f"Library not found: {lib_path}")
+
+        # Load the shared library
+        self.lib = ctypes.CDLL(str(lib_path))
         
         # Define function signatures
         # int pqcrystals_dilithium3_ref_keypair(uint8_t *pk, uint8_t *sk)

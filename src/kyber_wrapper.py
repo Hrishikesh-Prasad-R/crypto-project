@@ -1,5 +1,6 @@
 import ctypes
 import os
+import platform
 from pathlib import Path
 
 # Constants for Kyber768
@@ -11,8 +12,21 @@ KYBER768_BYTES = 32  # Shared secret size
 class Kyber768:
     def __init__(self):
         # Load the DLL
-        dll_path = "./libpqcrystals_kyber768_ref.dll"
-        self.lib = ctypes.CDLL(str(dll_path))
+        system = platform.system()
+        base_dir = Path(__file__).parent  # directory of this wrapper file
+
+        if system == "Windows":
+            lib_path = base_dir / "libpqcrystals_kyber768_ref.dll"
+        elif system == "Linux":
+            lib_path = base_dir / "libpqcrystals_kyber768_ref.so"
+        else:
+            raise RuntimeError(f"Unsupported OS: {system}")
+
+        if not lib_path.exists():
+            raise FileNotFoundError(f"Library not found: {lib_path}")
+
+        # Load the shared library
+        self.lib = ctypes.CDLL(str(lib_path))
         
         # Define function signatures
         # int pqcrystals_kyber768_ref_keypair(uint8_t *pk, uint8_t *sk)
