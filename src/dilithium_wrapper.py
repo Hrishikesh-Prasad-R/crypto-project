@@ -16,7 +16,7 @@ class Dilithium3:
         if system == "Windows":
             lib_name = "libpqcrystals_dilithium3_ref.dll"
         elif system == "Linux":
-            lib_name = "libpqcrystals_dilithium3_avx2.so"
+            lib_name = "libpqcrystals_dilithium3_ref.so"
         elif system == "Darwin":  # macOS
             lib_name = "libpqcrystals_dilithium3_ref.dylib"
         else:

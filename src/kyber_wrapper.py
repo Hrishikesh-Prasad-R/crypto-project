@@ -19,7 +19,7 @@ class Kyber768:
         if system == "Windows":
             lib_name = "libpqcrystals_kyber768_ref.dll"
         elif system == "Linux":
-            lib_name = "libpqcrystals_kyber768_avx2.so"
+            lib_name = "libpqcrystals_kyber768_ref.so"
         elif system == "Darwin":  # macOS
             lib_name = "libpqcrystals_kyber768_ref.dylib"
         else:
