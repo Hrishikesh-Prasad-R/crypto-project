@@ -53,19 +53,12 @@ class Kyber768:
             )
             raise OSError(error_msg) from e
         
-        # Define function signatures for AVX2 version
-        if system == "Linux":
-            # AVX2 version uses different function names
-            keypair_func = "pqcrystals_kyber768_avx2_keypair"
-            enc_func = "pqcrystals_kyber768_avx2_enc"
-            dec_func = "pqcrystals_kyber768_avx2_dec"
-        else:
-            # Reference version
-            keypair_func = "pqcrystals_kyber768_ref_keypair"
-            enc_func = "pqcrystals_kyber768_ref_enc"
-            dec_func = "pqcrystals_kyber768_ref_dec"
+        # Define function signatures - use ref for all platforms for compatibility
+        keypair_func = "pqcrystals_kyber768_ref_keypair"
+        enc_func = "pqcrystals_kyber768_ref_enc"
+        dec_func = "pqcrystals_kyber768_ref_dec"
         
-        # int pqcrystals_kyber768_xxx_keypair(uint8_t *pk, uint8_t *sk)
+        # int pqcrystals_kyber768_ref_keypair(uint8_t *pk, uint8_t *sk)
         self.keypair_func = getattr(self.lib, keypair_func)
         self.keypair_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
@@ -73,7 +66,7 @@ class Kyber768:
         ]
         self.keypair_func.restype = ctypes.c_int
         
-        # int pqcrystals_kyber768_xxx_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk)
+        # int pqcrystals_kyber768_ref_enc(uint8_t *ct, uint8_t *ss, const uint8_t *pk)
         self.enc_func = getattr(self.lib, enc_func)
         self.enc_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
@@ -82,7 +75,7 @@ class Kyber768:
         ]
         self.enc_func.restype = ctypes.c_int
         
-        # int pqcrystals_kyber768_xxx_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk)
+        # int pqcrystals_kyber768_ref_dec(uint8_t *ss, const uint8_t *ct, const uint8_t *sk)
         self.dec_func = getattr(self.lib, dec_func)
         self.dec_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),

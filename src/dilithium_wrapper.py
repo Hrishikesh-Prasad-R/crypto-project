@@ -48,19 +48,12 @@ class Dilithium3:
             )
             raise OSError(error_msg) from e
         
-        # Define function signatures based on platform
-        if system == "Linux":
-            # AVX2 version uses different function names
-            keypair_func = "pqcrystals_dilithium3_avx2_keypair"
-            signature_func = "pqcrystals_dilithium3_avx2_signature"
-            verify_func = "pqcrystals_dilithium3_avx2_verify"
-        else:
-            # Reference version
-            keypair_func = "pqcrystals_dilithium3_ref_keypair"
-            signature_func = "pqcrystals_dilithium3_ref_signature"
-            verify_func = "pqcrystals_dilithium3_ref_verify"
+        # Define function signatures - use ref for all platforms for compatibility
+        keypair_func = "pqcrystals_dilithium3_ref_keypair"
+        signature_func = "pqcrystals_dilithium3_ref_signature"
+        verify_func = "pqcrystals_dilithium3_ref_verify"
         
-        # int pqcrystals_dilithium3_xxx_keypair(uint8_t *pk, uint8_t *sk)
+        # int pqcrystals_dilithium3_ref_keypair(uint8_t *pk, uint8_t *sk)
         self.keypair_func = getattr(self.lib, keypair_func)
         self.keypair_func.argtypes = [
             ctypes.POINTER(ctypes.c_uint8),
@@ -68,7 +61,7 @@ class Dilithium3:
         ]
         self.keypair_func.restype = ctypes.c_int
         
-        # int pqcrystals_dilithium3_xxx_signature(uint8_t *sig, size_t *siglen,
+        # int pqcrystals_dilithium3_ref_signature(uint8_t *sig, size_t *siglen,
         #                                         const uint8_t *m, size_t mlen,
         #                                         const uint8_t *ctx, size_t ctxlen,
         #                                         const uint8_t *sk)
@@ -84,7 +77,7 @@ class Dilithium3:
         ]
         self.signature_func.restype = ctypes.c_int
         
-        # int pqcrystals_dilithium3_xxx_verify(const uint8_t *sig, size_t siglen,
+        # int pqcrystals_dilithium3_ref_verify(const uint8_t *sig, size_t siglen,
         #                                      const uint8_t *m, size_t mlen,
         #                                      const uint8_t *ctx, size_t ctxlen,
         #                                      const uint8_t *pk)
