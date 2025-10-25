@@ -11,22 +11,47 @@ KYBER768_BYTES = 32  # Shared secret size
 
 class Kyber768:
     def __init__(self):
-        # Load the DLL
+        # Determine the system
         system = platform.system()
-        base_dir = Path(__file__).parent  # directory of this wrapper file
+        base_dir = Path(__file__).parent.absolute()
 
+        # Select the appropriate library
         if system == "Windows":
-            lib_path = base_dir / "libpqcrystals_kyber768_ref.dll"
+            lib_name = "libpqcrystals_kyber768_ref.dll"
         elif system == "Linux":
-            lib_path = base_dir / "libpqcrystals_kyber768_ref.so"
+            lib_name = "libpqcrystals_kyber768_ref.so"
+        elif system == "Darwin":  # macOS
+            lib_name = "libpqcrystals_kyber768_ref.dylib"
         else:
             raise RuntimeError(f"Unsupported OS: {system}")
 
-        if not lib_path.exists():
-            raise FileNotFoundError(f"Library not found: {lib_path}")
+        lib_path = base_dir / lib_name
 
-        # Load the shared library
-        self.lib = ctypes.CDLL(str(lib_path))
+        # Enhanced error checking
+        if not lib_path.exists():
+            # Provide detailed debugging information
+            available_files = list(base_dir.glob("*"))
+            error_msg = (
+                f"Kyber library not found!\n"
+                f"Expected: {lib_path}\n"
+                f"Base directory: {base_dir}\n"
+                f"Platform: {system}\n"
+                f"Available files: {available_files}\n"
+                f"Current working directory: {os.getcwd()}"
+            )
+            raise FileNotFoundError(error_msg)
+
+        # Try to load the library with better error handling
+        try:
+            self.lib = ctypes.CDLL(str(lib_path))
+        except OSError as e:
+            error_msg = (
+                f"Failed to load Kyber library from {lib_path}\n"
+                f"Error: {str(e)}\n"
+                f"Platform: {system}\n"
+                f"Try installing required dependencies with: sudo apt-get install libgomp1"
+            )
+            raise OSError(error_msg) from e
         
         # Define function signatures
         # int pqcrystals_kyber768_ref_keypair(uint8_t *pk, uint8_t *sk)
