@@ -9,7 +9,7 @@ DILITHIUM3_BYTES = 3309  # Max signature size
 class Dilithium3:
     def __init__(self):
         # Load the DLL
-        dll_path = Path(__file__).parent / "dilithium" / "ref" / "lib" / "libpqcrystals_dilithium3_ref.dll"
+        dll_path = "./libpqcrystals_dilithium3_ref.dll"
         self.lib = ctypes.CDLL(str(dll_path))
         
         # Define function signatures

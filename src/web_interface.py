@@ -262,103 +262,13 @@ def attack_simulations_page():
         "Choose an attack to simulate:",
         ["Man-in-the-Middle", "Message Tampering", "Signature Forgery"]
     )
-    
-    if attack_type == "Man-in-the-Middle":
-        st.subheader("👹 Man-in-the-Middle Attack")
-        
-        st.markdown("""
-        <div class="danger-box">
-            <strong>Attack Scenario:</strong> Eve intercepts and modifies messages between Alice and Bob
-        </div>
-        """, unsafe_allow_html=True)
-        
-        if not st.session_state.alice_keys or not st.session_state.bob_keys:
-            st.warning("Generate keys first!")
-            return
-        
-        if st.button("🚨 Simulate MITM Attack"):
-            # Normal message
-            st.write("**Step 1:** Alice sends legitimate message")
-            message = "Transfer $100 to Bob"
-            
-            package = st.session_state.channel.send_message(
-                message,
-                st.session_state.bob_keys['kem_public'],
-                st.session_state.alice_keys['sign_secret']
-            )
-            
-            st.info(f"Original message: '{message}'")
-            
-            # Eve tampers
-            st.write("**Step 2:** Eve intercepts and modifies the message")
-            tampered = package.copy()
-            tampered['encrypted_message'] = b'HACKED!' + package['encrypted_message'][7:]
-            
-            st.warning("Eve changes encrypted data...")
-            
-            # Bob tries to decrypt
-            st.write("**Step 3:** Bob attempts to decrypt tampered message")
-            
-            try:
-                decrypted = st.session_state.channel.receive_message(
-                    tampered,
-                    st.session_state.bob_keys['kem_secret'],
-                    st.session_state.alice_keys['sign_public']
-                )
-                st.error("❌ SECURITY FAILURE - Attack succeeded!")
-            except ValueError as e:
-                st.markdown(f"""
-                <div class="success-box">
-                    <strong>✓ ATTACK BLOCKED!</strong><br>
-                    Reason: {e}<br>
-                    The digital signature detected the tampering!
-                </div>
-                """, unsafe_allow_html=True)
-    
-    elif attack_type == "Message Tampering":
-        st.subheader("✂️ Message Tampering Detection")
-        
-        if not st.session_state.alice_keys or not st.session_state.bob_keys:
-            st.warning("Generate keys first!")
-            return
-        
-        original_msg = st.text_input("Original message:", "Send $100")
-        
-        if st.button("Send Message"):
-            package = st.session_state.channel.send_message(
-                original_msg,
-                st.session_state.bob_keys['kem_public'],
-                st.session_state.alice_keys['sign_secret']
-            )
-            
-            st.session_state.tamper_package = package
-            st.success("✓ Message sent")
-        
-        if 'tamper_package' in st.session_state:
-            tampered_msg = st.text_input("Attacker modifies to:", "Send $1000")
-            
-            if st.button("Attempt Decryption"):
-                try:
-                    decrypted = st.session_state.channel.receive_message(
-                        st.session_state.tamper_package,
-                        st.session_state.bob_keys['kem_secret'],
-                        st.session_state.alice_keys['sign_public']
-                    )
-                    
-                    if decrypted == tampered_msg:
-                        st.error("SECURITY FAILURE!")
-                    else:
-                        st.success(f"✓ Original message intact: '{decrypted}'")
-                        st.info("Tampering is cryptographically impossible!")
-                except ValueError as e:
-                    st.success("✓ Tampering detected and blocked!")
 
 def performance_analysis_page():
     st.header("📊 Performance Analysis")
     
     st.subheader("⚡ Real-Time Benchmarking")
     
-    iterations = st.slider("Number of iterations:", 5, 50, 10)
+    iterations = st.slider("Number of iterations:", 5, 5000, 10)
     
     if st.button("Run Benchmark", type="primary"):
         progress_bar = st.progress(0)

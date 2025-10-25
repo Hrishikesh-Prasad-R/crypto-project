@@ -11,7 +11,7 @@ KYBER768_BYTES = 32  # Shared secret size
 class Kyber768:
     def __init__(self):
         # Load the DLL
-        dll_path = Path(__file__).parent / "kyber" / "ref" / "lib" / "libpqcrystals_kyber768_ref.dll"
+        dll_path = "./libpqcrystals_kyber768_ref.dll"
         self.lib = ctypes.CDLL(str(dll_path))
         
         # Define function signatures

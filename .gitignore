@@ -31,3 +31,7 @@ Thumbs.db
 
 # Other
 lib/
+
+src/aes_gcm/
+src/dilithium/
+src/kyber/
