@@ -53,8 +53,13 @@ class CryptographicAttacks:
         elif "Digital Signature" in attack_type:
             self.signature_forgery_attack()
         elif "Brute Force" in attack_type:
-            from attack_brute_force import BruteForceAttack
-            bf_attack = BruteForceAttack(self.channel, self.alice_keys, self.bob_keys, self.logger)
+            from .attack_brute_force import BruteForceAttack
+            bf_attack = BruteForceAttack(
+                self.channel, 
+                self.alice_keys, 
+                self.bob_keys, 
+                self.logger
+            )
             bf_attack.execute()
         elif "Chosen Ciphertext" in attack_type:
             self.chosen_ciphertext_attack()

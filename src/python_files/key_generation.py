@@ -7,7 +7,7 @@ FILE: key_generation.py
 import streamlit as st
 import time
 import plotly.express as px
-from config import ALGORITHM_INFO
+from python_files.config import ALGORITHM_INFO
 
 
 def key_generation_page():

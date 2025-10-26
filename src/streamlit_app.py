@@ -6,13 +6,13 @@ FILE: streamlit_app.py
 """
 
 import streamlit as st
-from config import setup_page_config, apply_custom_styles
-from diagnostics import check_crypto_initialization, display_initialization_error, initialize_session_state
-from key_generation import key_generation_page
-from secure_messaging import secure_messaging_page
-from attacks_basic import attack_simulations_page
-from performance_analysis import performance_analysis_page
-from quantum_calculator import quantum_calculator_page
+from python_files.config import setup_page_config, apply_custom_styles
+from python_files.diagnostics import check_crypto_initialization, display_initialization_error, initialize_session_state
+from python_files.key_generation import key_generation_page
+from python_files.secure_messaging import secure_messaging_page
+from attack_simulations.attacks import attack_simulations_page
+from python_files.performance_analysis import performance_analysis_page
+from python_files.quantum_calculator import quantum_calculator_page
 
 # Must be first Streamlit command
 setup_page_config()

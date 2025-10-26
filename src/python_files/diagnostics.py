@@ -102,7 +102,7 @@ def check_crypto_initialization():
         tuple: (success: bool, error: Exception or None, traceback: str or None)
     """
     try:
-        from crypto_system import SecureChannel
+        from python_files.crypto_system import SecureChannel
         import time
         import plotly.graph_objects as go
         import plotly.express as px
@@ -120,7 +120,7 @@ def initialize_session_state():
     """Initialize all session state variables"""
     if 'channel' not in st.session_state:
         try:
-            from crypto_system import SecureChannel
+            from python_files.crypto_system import SecureChannel
             with st.spinner("Initializing cryptographic system..."):
                 st.session_state.channel = SecureChannel()
             st.success("✓ Cryptographic system initialized successfully!")

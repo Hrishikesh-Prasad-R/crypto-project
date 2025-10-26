@@ -1,6 +1,6 @@
-from kyber_wrapper import Kyber768
-from dilithium_wrapper import Dilithium3
-from aes_handler import AESHandler
+from executables.kyber_wrapper import Kyber768
+from executables.dilithium_wrapper import Dilithium3
+from executables.aes_handler import AESHandler
 
 class SecureChannel:
     """Complete post-quantum secure communication channel"""
