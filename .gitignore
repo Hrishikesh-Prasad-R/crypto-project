@@ -36,3 +36,5 @@ src/aes_gcm/
 src/dilithium/
 src/kyber/
 venv-linux/
+
+C_code/
