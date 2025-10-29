@@ -103,11 +103,14 @@ def check_crypto_initialization():
     """
     try:
         from python_files.crypto_system import SecureChannel
+        from python_files.rsa_crypto import RSACrypto
         import time
         import plotly.graph_objects as go
         import plotly.express as px
         from Crypto.PublicKey import RSA
         from Crypto.Cipher import PKCS1_OAEP
+        from Crypto.Signature import pkcs1_15
+        from Crypto.Hash import SHA256
         
         return True, None, None
         

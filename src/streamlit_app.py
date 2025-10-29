@@ -12,7 +12,7 @@ from python_files.key_generation import key_generation_page
 from python_files.secure_messaging import secure_messaging_page
 from attack_simulations.attacks import attack_simulations_page
 from python_files.performance_analysis import performance_analysis_page
-from python_files.quantum_calculator import quantum_calculator_page
+from python_files.comparison_page import comparison_page
 
 # Must be first Streamlit command
 setup_page_config()
@@ -53,7 +53,7 @@ def main():
          "💬 Secure Messaging", 
          "⚔️ Attack Simulations", 
          "📊 Performance Analysis", 
-         "🧮 Quantum Calculator"]
+         "⚖️ PQC vs RSA Comparison"]
     )
     
     # Route to appropriate page
@@ -65,8 +65,8 @@ def main():
         attack_simulations_page()
     elif page == "📊 Performance Analysis":
         performance_analysis_page()
-    elif page == "🧮 Quantum Calculator":
-        quantum_calculator_page()
+    elif page == "⚖️ PQC vs RSA Comparison":
+        comparison_page()
 
 if __name__ == "__main__":
     main()

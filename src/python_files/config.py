@@ -62,7 +62,8 @@ ALGORITHM_INFO = {
         'security_level': 'NIST Level 3 (AES-192 equivalent)',
         'public_key_size': 1184,
         'secret_key_size': 2400,
-        'ciphertext_size': 1088
+        'ciphertext_size': 1088,
+        'quantum_secure': True
     },
     'dilithium3': {
         'name': 'Dilithium3',
@@ -70,7 +71,35 @@ ALGORITHM_INFO = {
         'security_level': 'NIST Level 3',
         'public_key_size': 1952,
         'secret_key_size': 4032,
-        'signature_size': 3309
+        'signature_size': 3309,
+        'quantum_secure': True
+    },
+    'rsa2048': {
+        'name': 'RSA-2048',
+        'type': 'Asymmetric Encryption & Signature',
+        'security_level': 'NIST Level 1 (AES-128 equivalent)',
+        'public_key_size': 294,  # Typical PEM size
+        'secret_key_size': 1675,  # Typical PEM size
+        'signature_size': 256,
+        'quantum_secure': False
+    },
+    'rsa3072': {
+        'name': 'RSA-3072',
+        'type': 'Asymmetric Encryption & Signature',
+        'security_level': 'NIST Level 2 (AES-128 equivalent)',
+        'public_key_size': 422,
+        'secret_key_size': 2455,
+        'signature_size': 384,
+        'quantum_secure': False
+    },
+    'rsa4096': {
+        'name': 'RSA-4096',
+        'type': 'Asymmetric Encryption & Signature',
+        'security_level': 'NIST Level 3 (AES-192 equivalent)',
+        'public_key_size': 550,
+        'secret_key_size': 3243,
+        'signature_size': 512,
+        'quantum_secure': False
     }
 }
 
@@ -80,20 +109,46 @@ QUANTUM_BREAK_YEARS = {
     "RSA-3072": 2033,
     "RSA-4096": 2035,
     "ECC-256": 2028,
-    "Kyber768": None,  # Not breakable
+    "Kyber768": None,  # Not breakable by known quantum algorithms
     "Dilithium3": None
 }
 
-# Performance Data (example baseline values)
+# Performance Data (example baseline values in milliseconds)
 PERFORMANCE_BASELINES = {
     'pqc': {
-        'keygen': 0.5,  # milliseconds
+        'keygen': 0.5,
         'encrypt': 0.3,
-        'decrypt': 0.4
+        'decrypt': 0.4,
+        'sign': 0.8,
+        'verify': 0.3
     },
-    'rsa': {
+    'rsa2048': {
         'keygen': 50.0,
         'encrypt': 1.0,
-        'decrypt': 5.0
+        'decrypt': 5.0,
+        'sign': 4.0,
+        'verify': 0.5
+    },
+    'rsa3072': {
+        'keygen': 150.0,
+        'encrypt': 1.5,
+        'decrypt': 12.0,
+        'sign': 10.0,
+        'verify': 0.8
+    },
+    'rsa4096': {
+        'keygen': 350.0,
+        'encrypt': 2.0,
+        'decrypt': 25.0,
+        'sign': 20.0,
+        'verify': 1.0
     }
+}
+
+# Comparison metrics
+COMPARISON_CATEGORIES = {
+    'Performance': ['Key Generation Speed', 'Encryption Speed', 'Decryption Speed', 'Signing Speed', 'Verification Speed'],
+    'Size': ['Public Key Size', 'Private Key Size', 'Ciphertext Size', 'Signature Size'],
+    'Security': ['Classical Security', 'Quantum Security', 'Future-Proof', 'Standardization'],
+    'Practical': ['Deployment Maturity', 'Hardware Support', 'Bandwidth Efficiency', 'Battery Impact']
 }

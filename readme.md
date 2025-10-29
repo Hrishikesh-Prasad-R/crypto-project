@@ -1,16 +1,18 @@
 # 🔒 Post-Quantum Cryptography Demo
 
-A comprehensive Python implementation demonstrating post-quantum cryptographic algorithms (Kyber768 and Dilithium3) with interactive visualizations and security demonstrations.
+A practical learning project showcasing hybrid secure-messaging with post-quantum cryptography (Kyber768 and Dilithium3) combined with AES-256-GCM. Includes attack demonstrations, performance benchmarks, and an interactive Streamlit interface.
 
-## 🌟 Features
+## 🎯 Highlights
 
-- **Post-Quantum Key Exchange**: Kyber768 for quantum-resistant key encapsulation
-- **Digital Signatures**: Dilithium3 for quantum-safe authentication
-- **Hybrid Encryption**: AES-256-GCM combined with post-quantum key exchange
-- **Interactive Web Interface**: Streamlit-based UI for easy demonstration
-- **Security Demonstrations**: Attack simulations (MITM, tampering, forgery)
-- **Performance Analysis**: Real-time benchmarking and visualization
-- **Quantum Threat Calculator**: Assess cryptographic algorithm vulnerabilities
+- **Quantum-Safe Key Exchange**: Kyber768 (NIST Level 3)
+- **Quantum-Safe Signatures**: Dilithium3 (NIST Level 3)
+- **Hybrid Encryption**: AES-256-GCM for authenticated encryption
+- **Interactive Web UI**: Clean, beginner-friendly Streamlit interface
+- **Attack Simulations**: MITM, tampering, signature forgery demonstrations
+- **Performance Benchmarking**: Cryptographic operation analysis with visualizations
+- **Quantum Threat Calculator**: Long-term security planning tool
+
+Perfect for anyone curious about post-quantum cryptography who wants to explore, break, and benchmark crypto protocols hands-on.
 
 ## 🚀 Quick Start
 
@@ -27,7 +29,7 @@ git clone https://github.com/Hrishikesh-Prasad-R/crypto-project.git
 cd crypto-project
 ```
 
-2. Create a virtual environment:
+2. Create and activate virtual environment:
 ```bash
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
@@ -38,192 +40,169 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### Running the Application
+### Run the Demo
 
-#### Web Interface (Recommended)
 ```bash
 cd src
-streamlit run web_interface.py
-```
-
-#### Command Line Demos
-```bash
-cd src
-python main.py              # Main interactive menu
-python demo.py              # Basic demo
-python protocol_demo.py     # Full protocol demonstration
-python attack_demo.py       # Security attack simulations
-python performance_graphs.py # Performance benchmarks
+streamlit run streamlit_app.py
 ```
 
 ## 📁 Project Structure
 
 ```
-crypto-project/
-├── src/
-│   ├── aes_gcm/              # AES-256-GCM implementation
-│   ├── dilithium/            # Dilithium3 signature scheme
-│   ├── kyber/                # Kyber768 KEM implementation
-│   ├── aes_handler.py        # AES encryption wrapper
-│   ├── crypto_system.py      # Main cryptographic system
-│   ├── dilithium_wrapper.py  # Dilithium integration
-│   ├── kyber_wrapper.py      # Kyber integration
-│   ├── main.py               # CLI menu interface
-│   ├── demo.py               # Basic demonstration
-│   ├── protocol_demo.py      # Full protocol demo
-│   ├── attack_demo.py        # Attack simulations
-│   ├── performance_graphs.py # Performance benchmarking
-│   ├── quantum_calculator.py # Quantum threat analysis
-│   └── web_interface.py      # Streamlit web UI
-├── requirements.txt          # Python dependencies
-├── .gitignore               # Git ignore rules
-└── README.md                # This file
+api_mini_project/
+├── .gitignore                    # Keeps repo clean (excludes keys, binaries, cache)
+├── packages.txt                  # System dependencies for crypto compilation
+├── readme.md                     # This file
+├── requirements.txt              # Python dependencies
+│
+└── src/
+    ├── streamlit_app.py          # Main web interface
+    │
+    ├── attack_simulations/       # Attack modeling and cryptanalysis
+    │   ├── attacks.py
+    │   ├── attack_analysis.py
+    │   ├── attack_brute_force.py
+    │   ├── attack_cryptographic.py
+    │   ├── attack_logger.py
+    │   ├── attack_protocol.py
+    │   ├── attack_signature_methods.py
+    │   └── attack_visualizer.py
+    │
+    ├── executables/              # Python wrappers for C implementations
+    │   ├── aes_handler.py
+    │   ├── dilithium_wrapper.py
+    │   └── kyber_wrapper.py
+    │   # Note: Binary directories (aes_gcm/, dilithium/, kyber/) excluded via .gitignore
+    │
+    └── python_files/             # Core cryptographic system logic
+        ├── config.py
+        ├── crypto_system.py
+        ├── diagnostics.py
+        ├── key_generation.py
+        ├── performance_analysis.py
+        ├── quantum_calculator.py
+        └── secure_messaging.py
 ```
 
 ## 🔐 Cryptographic Algorithms
 
 ### Kyber768 (Key Encapsulation Mechanism)
-- **Security Level**: NIST Level 3 (equivalent to AES-192)
+- **Security Level**: NIST Level 3 (≈ AES-192)
 - **Public Key**: 1,184 bytes
 - **Ciphertext**: 1,088 bytes
 - **Shared Secret**: 32 bytes
 - **Purpose**: Quantum-resistant key exchange
 
-### Dilithium3 (Digital Signature)
+### Dilithium3 (Digital Signature Scheme)
 - **Security Level**: NIST Level 3
 - **Public Key**: 1,952 bytes
 - **Secret Key**: 4,032 bytes
 - **Signature**: ~3,293 bytes
-- **Purpose**: Quantum-resistant authentication
+- **Purpose**: Quantum-resistant authentication and integrity
 
 ### AES-256-GCM (Symmetric Encryption)
 - **Key Size**: 256 bits
 - **Mode**: Galois/Counter Mode (authenticated encryption)
-- **Purpose**: Fast, secure message encryption
+- **Purpose**: Fast, secure message encryption with integrity
 
-## 🎯 Use Cases Demonstrated
+**Real security for hypothetical quantum dystopias.**
 
-### 1. Secure Messaging
-- End-to-end encrypted communication
-- Digital signature verification
-- Forward secrecy through ephemeral keys
+## 🌐 Web Interface Capabilities
 
-### 2. Attack Resistance
-- Man-in-the-Middle (MITM) attack detection
-- Message tampering prevention
-- Signature forgery protection
+✅ **Key Generation**: Generate quantum-safe keypairs for Alice and Bob  
+✅ **Secure Messaging**: End-to-end encrypted communication with signature verification  
+✅ **Attack Demonstrations**: MITM interception, message tampering, signature forgery  
+✅ **Performance Benchmarks**: Real-time metrics with statistical charts  
+✅ **Quantum Threat Assessment**: Timeline predictions and migration planning  
 
-### 3. Performance Benchmarking
-- Key generation speed
+Everything is visual, interactive, and beginner-friendly.
+
+## 🔥 Attack Demonstrations
+
+Attack scripts model real-world cryptographic failures:
+
+- **MITM Attack**: Key exchange interception
+- **Message Tampering**: Ciphertext modification detection
+- **Signature Forgery**: Authentication bypass attempts
+- **Brute Force**: Weak parameter vulnerability testing
+- **Protocol Attacks**: System-level security analysis
+
+**Reminder**: Cryptography isn't a magic forcefield. The threat model matters.
+
+## 📊 Performance Benchmarking
+
+- Key generation timing analysis
 - Encryption/decryption throughput
-- Statistical analysis with visualizations
+- Statistical reports with distribution plots
+- Configurable iteration counts
+- Speed and stability measurements under repeated operations
 
-### 4. Quantum Threat Assessment
-- Timeline predictions for quantum computer threats
-- Algorithm vulnerability analysis
-- Migration planning recommendations
+## 📚 Educational Takeaways
 
+This project demonstrates:
+
+- **PQC Motivation**: Why quantum computers threaten current cryptography
+- **NIST Standardization**: Round 4 selection process
+- **Hybrid Encryption Design**: Combining classical and quantum-safe algorithms
+- **Signature Verification**: Authentication workflows
+- **Authenticated Encryption**: Why MAC/signatures matter
+- **Attack Surface Analysis**: How adversaries exploit protocol weaknesses
+
+Works as both a demonstration tool and hands-on learning playground.
 
 ## 🛡️ Security Features
 
-- ✅ **Quantum-Resistant**: Protected against Shor's algorithm
-- ✅ **Forward Secrecy**: Past sessions remain secure if keys compromised
+- ✅ **Quantum-Resistant**: Protected against Shor's and Grover's algorithms
+- ✅ **Forward Secrecy**: Past sessions secure even if keys compromised
 - ✅ **Authentication**: Cryptographic proof of sender identity
-- ✅ **Integrity**: Tampering detection through signatures
-- ✅ **Confidentiality**: AES-256-GCM encryption
-
-## 🎨 Web Interface Features
-
-### Key Generation
-- Generate quantum-safe keypairs for Alice and Bob
-- Visualize key sizes
-- View public keys in hexadecimal
-
-### Secure Messaging
-- Encrypt messages with post-quantum algorithms
-- Decrypt and verify signatures
-- Real-time performance metrics
-
-### Attack Simulations
-- Man-in-the-Middle attacks
-- Message tampering detection
-- Signature forgery attempts
-
-### Performance Analysis
-- Configurable benchmark iterations
-- Statistical distribution plots
-- Average and standard deviation metrics
-
-### Quantum Calculator
-- Assess cryptographic algorithm lifetimes
-- Visualize quantum threat timelines
-- Get migration recommendations
-
-## 📚 Educational Resources
-
-This project demonstrates:
-- Post-quantum cryptography basics
-- NIST standardization process
-- Hybrid encryption schemes
-- Digital signature protocols
-- Key encapsulation mechanisms
-- Attack surface analysis
-
-## 🔧 Technical Details
-
-### Dependencies
-- `pycryptodome`: AES-GCM implementation
-- `streamlit`: Web interface
-- `plotly`: Interactive visualizations
-- `colorama`: Terminal colors
-- `numpy`: Numerical operations
-
-### Compatibility
-- Cross-platform (Windows, Linux, macOS)
-- Python 3.8+
-- No external cryptographic libraries required for PQC
-
-## 🤝 Contributing
-
-Contributions are welcome! Areas for improvement:
-- Additional post-quantum algorithms (NTRU, SPHINCS+)
-- More attack simulations
-- Performance optimizations
-- Additional visualizations
-- Documentation improvements
-
-## 📝 License
-
-This project is for educational purposes. See LICENSE file for details.
+- ✅ **Integrity**: Tampering detection through digital signatures
+- ✅ **Confidentiality**: Military-grade AES-256-GCM encryption
 
 ## ⚠️ Security Notice
 
-**This is a demonstration project for educational purposes.**
+**This is a research and educational tool.**
 
-- Do NOT use in production systems without thorough security audit
-- Implementations may not be constant-time (vulnerable to timing attacks)
-- Not optimized for production use
-- Use established libraries (liboqs, PQClean) for real applications
+- ❌ Not constant-time (vulnerable to timing attacks)
+- ❌ Not professionally audited
+- ❌ Not production-ready
+- ✅ Use established libraries ([liboqs](https://github.com/open-quantum-safe/liboqs), [PQClean](https://github.com/PQClean/PQClean)) for real deployments
+
+## 🤝 Contributing
+
+Contributions welcome! Ideas for enhancement:
+
+- Additional PQC schemes (NTRU, SPHINCS+, FrodoKEM)
+- Side-channel attack experiments
+- UI/UX improvements
+- Enhanced visualizations
+- Automated testing suite
+- Performance optimizations
+
+Submit a PR or open an issue to collaborate.
+
+## 🔧 Technical Dependencies
+
+- `pycryptodome`: AES-GCM implementation
+- `streamlit`: Web interface framework
+- `plotly`: Interactive data visualizations
+- `colorama`: Terminal color formatting
+- `numpy`: Numerical operations
+
+**Platform Support**: Windows, Linux, macOS | Python 3.8+
 
 ## 🔗 References
 
-- [NIST Post-Quantum Cryptography Standardization](https://csrc.nist.gov/projects/post-quantum-cryptography)
-- [Kyber Specification](https://pq-crystals.org/kyber/)
-- [Dilithium Specification](https://pq-crystals.org/dilithium/)
+- [NIST Post-Quantum Cryptography Project](https://csrc.nist.gov/projects/post-quantum-cryptography)
+- [CRYSTALS-Kyber Specification](https://pq-crystals.org/kyber/)
+- [CRYSTALS-Dilithium Specification](https://pq-crystals.org/dilithium/)
 - [PQC Migration Best Practices](https://www.nist.gov/publications/migration-post-quantum-cryptography)
 
 ## 👨‍💻 Author
 
-Hrishikesh R Prasad
-
-## 🙏 Acknowledgments
-
-- NIST for post-quantum cryptography standardization
-- CRYSTALS team for Kyber and Dilithium algorithms
-- Open-source cryptography community
+**Hrishikesh R Prasad**
 
 ---
 
-**⭐ If you find this project useful, please star the repository!**
-
-**📧 For questions or feedback, open an issue on GitHub.**
+**⭐ If you find this project useful, star the repository!**  
+**📧 Questions or feedback? Open an issue on GitHub.**
