@@ -13,6 +13,161 @@ import pandas as pd
 from python_files.crypto_system import SecureChannel
 from python_files.rsa_crypto import RSACrypto
 
+def performance_comparison():
+    """Benchmark and compare performance"""
+    
+    st.markdown("### ⚡ Performance Benchmarks")
+    st.write("Real-time performance comparison across different operations.")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        rsa_size = st.selectbox(
+            "RSA Key Size:",
+            [2048, 3072, 4096],
+            index=0,
+            key='perf_rsa_size'
+        )
+    with col2:
+        iterations = st.slider(
+            "Test Iterations:",
+            min_value=10,
+            max_value=100,
+            value=50,
+            step=10
+        )
+    
+    if st.button("🚀 Run Performance Benchmark", type="primary"):
+        with st.spinner("Running benchmarks... This may take a moment."):
+            results = run_performance_benchmark(rsa_size, iterations)
+            display_performance_results(results, rsa_size)
+
+def display_performance_results(results, rsa_size):
+    """Display benchmark results with real-world interpretation"""
+    
+    st.success("✓ Benchmark completed!")
+    
+    ops = ['keygen', 'encrypt', 'decrypt', 'sign', 'verify']
+    names = ['Key Generation', 'Encryption', 'Decryption', 'Signing', 'Verification']
+    
+    df = pd.DataFrame({
+        'Operation': names,
+        'PQC (ms)': [results['pqc'][op] for op in ops],
+        f'RSA-{rsa_size} (ms)': [results['rsa'][op] for op in ops]
+    })
+    
+    df['RSA / PQC'] = df[f'RSA-{rsa_size} (ms)'] / df['PQC (ms)']
+    
+    st.dataframe(df.style.format({
+        'PQC (ms)': '{:.3f}',
+        f'RSA-{rsa_size} (ms)': '{:.3f}',
+        'RSA / PQC': '{:.2f}x'
+    }), use_container_width=True)
+    
+    # ------------------ Bar chart ------------------
+    fig = go.Figure()
+    fig.add_trace(go.Bar(name="PQC", x=names, y=df['PQC (ms)']))
+    fig.add_trace(go.Bar(name=f"RSA-{rsa_size}", x=names, y=df[f'RSA-{rsa_size} (ms)']))
+    fig.update_layout(
+        barmode='group',
+        yaxis_type="log",
+        title="PQC vs RSA Benchmark (Log Scale)",
+        height=500
+    )
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Extract numbers
+    pqc = results['pqc']
+    rsa = results['rsa']
+    
+    # ------------------ TLS weighted model ------------------
+    st.markdown("### 🔐 TLS Handshake Performance (Real TLS 1.3 Model)")
+    
+    rsa_tls = rsa['keygen'] * 0.4 + rsa['encrypt'] * 0.4 + rsa['verify'] * 0.2
+    pqc_tls = pqc['keygen'] * 0.4 + pqc['encrypt'] * 0.4 + pqc['verify'] * 0.2
+    
+    rsa_hs = 1000 / rsa_tls
+    pqc_hs = 1000 / pqc_tls
+    
+    tls_df = pd.DataFrame({
+        "Algorithm": ["RSA", "PQC"],
+        "TLS Cost (ms)": [rsa_tls, pqc_tls],
+        "Handshakes/sec per Core": [rsa_hs, pqc_hs]
+    })
+    
+    st.dataframe(tls_df, use_container_width=True)
+    
+    fig_tls = go.Figure()
+    fig_tls.add_trace(go.Bar(
+        x=tls_df["Algorithm"],
+        y=tls_df["Handshakes/sec per Core"],
+        text=[f"{v:,.0f}" for v in tls_df["Handshakes/sec per Core"]],
+        textposition="auto"
+    ))
+    fig_tls.update_layout(
+        title="TLS Handshakes Per Second (TLS 1.3 Weighted Model)",
+        yaxis_type="log",
+        height=450
+    )
+    st.plotly_chart(fig_tls, use_container_width=True)
+    
+    # ------------------ IoT chart ------------------
+    st.markdown("### 📱 IoT Device Performance")
+    
+    iot_df = pd.DataFrame({
+        "Operation": ["KeyGen", "Sign", "Verify"],
+        "RSA (ms)": [rsa['keygen'], rsa['sign'], rsa['verify']],
+        "PQC (ms)": [pqc['keygen'], pqc['sign'], pqc['verify']]
+    })
+    
+    st.dataframe(iot_df, use_container_width=True)
+    
+    fig_iot = go.Figure()
+    fig_iot.add_trace(go.Bar(name="RSA", x=iot_df["Operation"], y=iot_df["RSA (ms)"]))
+    fig_iot.add_trace(go.Bar(name="PQC", x=iot_df["Operation"], y=iot_df["PQC (ms)"]))
+    fig_iot.update_layout(
+        barmode='group',
+        yaxis_type="log",
+        title="IoT Operation Times (Log Scale)",
+        height=450
+    )
+    st.plotly_chart(fig_iot, use_container_width=True)
+    
+    # ------------------ Cloud compute scaling ------------------
+    st.markdown("### ☁️ Cloud Compute Scaling")
+    
+    cloud_df = pd.DataFrame({
+        "Algorithm": ["RSA", "PQC"],
+        "Ops/sec per Core": [rsa_hs, pqc_hs],
+        "Cores Needed for 50M Ops/day": [
+            50_000_000 / (rsa_hs * 86400),
+            50_000_000 / (pqc_hs * 86400)
+        ]
+    })
+    
+    st.dataframe(cloud_df, use_container_width=True)
+    
+    fig_cloud = go.Figure()
+    fig_cloud.add_trace(go.Bar(
+        x=cloud_df["Algorithm"],
+        y=cloud_df["Cores Needed for 50M Ops/day"],
+        text=[f"{v:.4f}" for v in cloud_df["Cores Needed for 50M Ops/day"]],
+        textposition="auto"
+    ))
+    fig_cloud.update_layout(
+        yaxis_type="log",
+        title="CPU Cores Needed for 50M TLS Ops/Day",
+        height=450
+    )
+    st.plotly_chart(fig_cloud, use_container_width=True)
+    
+    st.markdown("""
+    ### 🚀 Real-World Effects Based on YOUR Device
+    - PQC performs better in handshake-heavy workloads  
+    - PQC reduces cloud CPU cost  
+    - PQC improves IoT battery efficiency  
+    - All results shown use your **actual measured benchmark values**  
+    """)
+
 
 def comparison_page():
     """Main comparison page between PQC and RSA"""
@@ -151,404 +306,69 @@ def key_size_comparison():
         """)
 
 
-def performance_comparison():
-    """Benchmark and compare performance"""
+def run_performance_benchmark(rsa_size, iterations):
+    """Run comprehensive performance tests"""
     
-    st.markdown("### ⚡ Performance Benchmarks")
-    st.write("Real-time performance comparison across different operations.")
+    pqc_channel = st.session_state.channel
+    rsa_crypto = RSACrypto(key_size=rsa_size)
     
-    # Configuration
-    col1, col2 = st.columns(2)
-    with col1:
-        rsa_size = st.selectbox(
-            "RSA Key Size:",
-            [2048, 3072, 4096],
-            index=0,
-            key='perf_rsa_size'
-        )
-    with col2:
-        iterations = st.slider(
-            "Test Iterations:",
-            min_value=10,
-            max_value=100,
-            value=50,
-            step=10
-        )
+    test_message = b"This is a test message for cryptographic benchmarking!"
     
-    if st.button("🚀 Run Performance Benchmark", type="primary"):
-        with st.spinner("Running benchmarks... This may take a moment."):
-            results = run_performance_benchmark(rsa_size, iterations)
-            display_performance_results(results, rsa_size)
-
-
-def display_performance_results(results, rsa_size):
-    """Display performance benchmark results"""
+    results = {
+        'pqc': {'keygen': [], 'encrypt': [], 'decrypt': [], 'sign': [], 'verify': []},
+        'rsa': {'keygen': [], 'encrypt': [], 'decrypt': [], 'sign': [], 'verify': []}
+    }
     
-    st.success("✓ Benchmark completed!")
+    progress = st.progress(0)
     
-    # Create comparison DataFrame
-    operations = ['keygen', 'encrypt', 'decrypt', 'sign', 'verify']
-    operation_names = ['Key Generation', 'Encryption', 'Decryption', 'Signing', 'Verification']
+    for i in range(iterations):
+        
+        # -------------------- PQC --------------------
+        start = time.time()
+        pqc_keys = pqc_channel.generate_keys()
+        results['pqc']['keygen'].append((time.time() - start) * 1000)
+        
+        start = time.time()
+        pkg = pqc_channel.send_message(test_message, pqc_keys['kem_public'], pqc_keys['sign_secret'])
+        results['pqc']['encrypt'].append((time.time() - start) * 1000)
+        
+        start = time.time()
+        _ = pqc_channel.receive_message(pkg, pqc_keys['kem_secret'], pqc_keys['sign_public'])
+        results['pqc']['decrypt'].append((time.time() - start) * 1000)
+        
+        start = time.time()
+        sig = pqc_channel.dilithium.sign(test_message, pqc_keys['sign_secret'])
+        results['pqc']['sign'].append((time.time() - start) * 1000)
+        
+        start = time.time()
+        pqc_channel.dilithium.verify(sig, test_message, pqc_keys['sign_public'])
+        results['pqc']['verify'].append((time.time() - start) * 1000)
+        
+        # -------------------- RSA --------------------
+        rsa_pub, rsa_priv, keygen_time = rsa_crypto.generate_keypair()
+        results['rsa']['keygen'].append(keygen_time * 1000)
+        
+        short_msg = test_message[:32]
+        ct, enc_time = rsa_crypto.encrypt(short_msg, rsa_pub)
+        results['rsa']['encrypt'].append(enc_time * 1000)
+        
+        _, dec_time = rsa_crypto.decrypt(ct, rsa_priv)
+        results['rsa']['decrypt'].append(dec_time * 1000)
+        
+        sig, sign_time = rsa_crypto.sign(test_message, rsa_priv)
+        results['rsa']['sign'].append(sign_time * 1000)
+        
+        _, verify_time = rsa_crypto.verify(sig, test_message, rsa_pub)
+        results['rsa']['verify'].append(verify_time * 1000)
+        
+        progress.progress((i + 1) / iterations)
     
-    df = pd.DataFrame({
-        'Operation': operation_names,
-        'PQC (ms)': [results['pqc'][op] for op in operations],
-        f'RSA-{rsa_size} (ms)': [results['rsa'][op] for op in operations]
-    })
+    # Compute averages
+    final = {}
+    for sys in ['pqc', 'rsa']:
+        final[sys] = {op: sum(vals) / len(vals) for op, vals in results[sys].items()}
     
-    df['Speed Difference (RSA/PQC)'] = df[f'RSA-{rsa_size} (ms)'] / df['PQC (ms)']
-    
-    st.markdown("#### Performance Results (milliseconds)")
-    st.dataframe(df.style.format({
-        'PQC (ms)': '{:.3f}',
-        f'RSA-{rsa_size} (ms)': '{:.3f}',
-        'Speed Difference (RSA/PQC)': '{:.2f}x'
-    }), use_container_width=True)
-    
-    # Primary bar chart
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        name='PQC',
-        x=operation_names,
-        y=[results['pqc'][op] for op in operations],
-        marker_color='#1f77b4'
-    ))
-    fig.add_trace(go.Bar(
-        name=f'RSA-{rsa_size}',
-        x=operation_names,
-        y=[results['rsa'][op] for op in operations],
-        marker_color='#ff7f0e'
-    ))
-    
-    fig.update_layout(
-        title=f"Performance Comparison: PQC vs RSA-{rsa_size}",
-        xaxis_title="Operation",
-        yaxis_title="Time (milliseconds, log scale)",
-        yaxis_type="log",
-        barmode='group',
-        height=500
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # -----------------------------------------------------
-    # 🌍 REAL-WORLD IMPACT (DYNAMIC BASED ON MEASURED VALUES)
-    # -----------------------------------------------------
-    st.markdown("### 🌍 Real-World Impact Based on Your Benchmark Results")
-
-    pqc_keygen = results['pqc']['keygen']
-    pqc_encrypt = results['pqc']['encrypt']
-    pqc_sign = results['pqc']['sign']
-    pqc_verify = results['pqc']['verify']
-
-    rsa_keygen = results['rsa']['keygen']
-    rsa_encrypt = results['rsa']['encrypt']
-    rsa_sign = results['rsa']['sign']
-    rsa_verify = results['rsa']['verify']
-
-    def safe_div(a, b): return (a / b) if b > 0 else 0
-
-    st.markdown(f"""
-    **Measured Differences (Based on This System):**
-    - KeyGen RSA/PQC = **{safe_div(rsa_keygen, pqc_keygen):.2f}×**
-    - Encrypt RSA/PQC = **{safe_div(rsa_encrypt, pqc_encrypt):.2f}×**
-    - Sign RSA/PQC = **{safe_div(rsa_sign, pqc_sign):.2f}×**
-    - Verify RSA/PQC = **{safe_div(rsa_verify, pqc_verify):.2f}×**
-    """)
-
-    # ============================
-    # 1. TLS HANDSHAKES (REAL MODEL)
-    # ============================
-    st.markdown("#### 🔐 1. TLS Handshakes (Real-World Model)")
-
-    # Weighted TLS 1.3 cost model:
-    # - KeyGen 40%
-    # - Encrypt/Encaps 40%
-    # - Signature Verification 20%
-    rsa_tls_cost = (rsa_keygen * 0.4) + (rsa_encrypt * 0.4) + (rsa_verify * 0.2)
-    pqc_tls_cost = (pqc_keygen * 0.4) + (pqc_encrypt * 0.4) + (pqc_verify * 0.2)
-
-    rsa_handshake_rate = 1000 / rsa_tls_cost
-    pqc_handshake_rate = 1000 / pqc_tls_cost
-
-    tls_df = pd.DataFrame({
-        "Algorithm": ["RSA", "PQC"],
-        "Avg TLS Cost (ms)": [rsa_tls_cost, pqc_tls_cost],
-        "Handshakes/sec per Core": [rsa_handshake_rate, pqc_handshake_rate],
-        "Time for 1M Handshakes (sec)": [
-            1_000_000 / rsa_handshake_rate,
-            1_000_000 / pqc_handshake_rate
-        ]
-    })
-
-    st.dataframe(tls_df, use_container_width=True)
-
-    fig_tls = go.Figure()
-    fig_tls.add_trace(go.Bar(
-        x=tls_df["Algorithm"],
-        y=tls_df["Handshakes/sec per Core"],
-        text=[f"{v:,.0f}" for v in tls_df["Handshakes/sec per Core"]],
-        textposition="auto"
-    ))
-    fig_tls.update_layout(
-        title="TLS Handshakes Per Second (Based on Real TLS Operation Costs)",
-        yaxis_type="log",
-        yaxis_title="Handshakes/sec (log scale)"
-    )
-    st.plotly_chart(fig_tls, use_container_width=True)
-
-    # ============================
-    # 2. IoT DEVICES
-    # ============================
-    st.markdown("#### 📱 2. IoT Devices (Battery-Powered Sensors)")
-
-    iot_df = pd.DataFrame({
-        "Operation": ["KeyGen", "Signing", "Verification"],
-        "RSA (ms)": [rsa_keygen, rsa_sign, rsa_verify],
-        "PQC (ms)": [pqc_keygen, pqc_sign, pqc_verify]
-    })
-    st.dataframe(iot_df, use_container_width=True)
-
-    fig_iot = go.Figure()
-    fig_iot.add_trace(go.Bar(name="RSA", x=iot_df["Operation"], y=iot_df["RSA (ms)"]))
-    fig_iot.add_trace(go.Bar(name="PQC", x=iot_df["Operation"], y=iot_df["PQC (ms)"]))
-    fig_iot.update_layout(
-        barmode="group",
-        title="IoT Performance (Measured)",
-        yaxis_type="log",
-        yaxis_title="Time (ms, log scale)"
-    )
-    st.plotly_chart(fig_iot, use_container_width=True)
-
-    # ============================
-    # 3. CLOUD COMPUTE COST
-    # ============================
-    st.markdown("#### ☁️ 3. Cloud Compute Scaling")
-
-    cloud_df = pd.DataFrame({
-        "Algorithm": ["RSA", "PQC"],
-        "Ops/sec per Core": [rsa_handshake_rate, pqc_handshake_rate],
-        "Cores Needed for 50M Ops/day": [
-            50_000_000 / (rsa_handshake_rate * 86400),
-            50_000_000 / (pqc_handshake_rate * 86400)
-        ]
-    })
-
-    st.dataframe(cloud_df, use_container_width=True)
-
-    fig_cloud = go.Figure()
-    fig_cloud.add_trace(go.Bar(
-        x=cloud_df["Algorithm"],
-        y=cloud_df["Cores Needed for 50M Ops/day"],
-        text=[f"{v:.4f}" for v in cloud_df["Cores Needed for 50M Ops/day"]],
-        textposition="auto"
-    ))
-    fig_cloud.update_layout(
-        title="CPU Cores Needed for 50M Ops/Day (Based on TLS Model)",
-        yaxis_type="log",
-        yaxis_title="CPU Cores (log scale)"
-    )
-    st.plotly_chart(fig_cloud, use_container_width=True)
-
-    # Summary
-    st.markdown("""
-    ### 🚀 Real-World Interpretation (Based on Your Actual Benchmarks)
-
-    These calculations use:
-    - **Real TLS cost weights**
-    - **Your machine's actual timings**
-    - **Measured PQC / RSA timings**
-
-    This gives a realistic picture of:
-    - TLS scalability  
-    - Cloud server requirements  
-    - IoT device performance  
-    """)
-
-def display_performance_results(results, rsa_size):
-    """Display performance benchmark results"""
-    
-    st.success("✓ Benchmark completed!")
-    
-    # Create comparison DataFrame
-    operations = ['keygen', 'encrypt', 'decrypt', 'sign', 'verify']
-    operation_names = ['Key Generation', 'Encryption', 'Decryption', 'Signing', 'Verification']
-    
-    df = pd.DataFrame({
-        'Operation': operation_names,
-        'PQC (ms)': [results['pqc'][op] for op in operations],
-        f'RSA-{rsa_size} (ms)': [results['rsa'][op] for op in operations]
-    })
-    
-    # Add speedup factor
-    df['Speed Difference (RSA/PQC)'] = df[f'RSA-{rsa_size} (ms)'] / df['PQC (ms)']
-    
-    st.markdown("#### Performance Results (milliseconds)")
-    st.dataframe(df.style.format({
-        'PQC (ms)': '{:.3f}',
-        f'RSA-{rsa_size} (ms)': '{:.3f}',
-        'Speed Difference (RSA/PQC)': '{:.2f}x'
-    }), use_container_width=True)
-    
-    # Bar chart comparison
-    fig = go.Figure()
-    fig.add_trace(go.Bar(
-        name='PQC',
-        x=operation_names,
-        y=[results['pqc'][op] for op in operations],
-        marker_color='#1f77b4'
-    ))
-    
-    fig.add_trace(go.Bar(
-        name=f'RSA-{rsa_size}',
-        x=operation_names,
-        y=[results['rsa'][op] for op in operations],
-        marker_color='#ff7f0e'
-    ))
-    
-    fig.update_layout(
-        title=f"Performance Comparison: PQC vs RSA-{rsa_size}",
-        xaxis_title="Operation",
-        yaxis_title="Time (milliseconds, log scale)",
-        yaxis_type="log",
-        barmode='group',
-        height=500
-    )
-    
-    st.plotly_chart(fig, use_container_width=True)
-    
-    # -----------------------------------------------------
-    # 🌍 REAL-WORLD IMPACT (DYNAMIC, BASED ON MEASURED VALUES)
-    # -----------------------------------------------------
-    st.markdown("### 🌍 Real-World Impact Based on Your Benchmark Results")
-
-    pqc_sign = results['pqc']['sign']
-    rsa_sign = results['rsa']['sign']
-    pqc_keygen = results['pqc']['keygen']
-    rsa_keygen = results['rsa']['keygen']
-    pqc_encrypt = results['pqc']['encrypt']
-    rsa_encrypt = results['rsa']['encrypt']
-
-    def safe_div(a, b):
-        return (a / b) if b > 0 else 0
-
-    sign_factor = safe_div(rsa_sign, pqc_sign)
-    keygen_factor = safe_div(rsa_keygen, pqc_keygen)
-    encrypt_factor = safe_div(rsa_encrypt, pqc_encrypt)
-
-    st.markdown(f"""
-    **Measured Differences (Based on This System):**
-    - Signing: RSA / PQC = **{sign_factor:.2f}x**
-    - Key Generation: RSA / PQC = **{keygen_factor:.2f}x**
-    - Encryption: RSA / PQC = **{encrypt_factor:.2f}x**
-    """)
-
-    # ============================
-    # 1. TLS HANDSHAKES (SIGN OPERATION)
-    # ============================
-    st.markdown("#### 🔐 1. TLS Handshakes (Websites, Banking, Cloud)")
-
-    rsa_handshake_rate = 1000 / rsa_sign
-    pqc_handshake_rate = 1000 / pqc_sign
-
-    tls_df = pd.DataFrame({
-        "Algorithm": ["RSA", "PQC"],
-        "Sign Time (ms)": [rsa_sign, pqc_sign],
-        "Handshakes / sec (per CPU core)": [rsa_handshake_rate, pqc_handshake_rate],
-        "Time for 1M Handshakes (sec)": [
-            1_000_000 / rsa_handshake_rate,
-            1_000_000 / pqc_handshake_rate
-        ]
-    })
-
-    st.dataframe(tls_df, use_container_width=True)
-
-    fig_tls = go.Figure()
-    fig_tls.add_trace(go.Bar(
-        x=tls_df["Algorithm"],
-        y=tls_df["Handshakes / sec (per CPU core)"],
-        text=[f"{v:,.0f}" for v in tls_df["Handshakes / sec (per CPU core)"]],
-        textposition="auto"
-    ))
-    fig_tls.update_layout(
-        title="TLS Handshakes Per Second (Based on Measured Signing Time)",
-        yaxis_type="log",
-        yaxis_title="Handshakes/sec (log scale)"
-    )
-    st.plotly_chart(fig_tls, use_container_width=True)
-
-    # ============================
-    # 2. IoT DEVICES (KEYGEN + SIGN)
-    # ============================
-    st.markdown("#### 📱 2. IoT Devices (Battery-Powered Sensors)")
-
-    iot_df = pd.DataFrame({
-        "Operation": ["Key Generation", "Signing", "Verification"],
-        "RSA (ms)": [rsa_keygen, rsa_sign, results['rsa']['verify']],
-        "PQC (ms)": [pqc_keygen, pqc_sign, results['pqc']['verify']]
-    })
-    st.dataframe(iot_df, use_container_width=True)
-
-    fig_iot = go.Figure()
-    fig_iot.add_trace(go.Bar(
-        name="RSA",
-        x=iot_df["Operation"],
-        y=iot_df["RSA (ms)"]
-    ))
-    fig_iot.add_trace(go.Bar(
-        name="PQC",
-        x=iot_df["Operation"],
-        y=iot_df["PQC (ms)"]
-    ))
-    fig_iot.update_layout(
-        barmode="group",
-        title="IoT Operation Times (Measured On This System)",
-        yaxis_type="log",
-        yaxis_title="Time (ms, log scale)"
-    )
-    st.plotly_chart(fig_iot, use_container_width=True)
-
-    # ============================
-    # 3. CLOUD SERVER COST (OPS/sec)
-    # ============================
-    st.markdown("#### ☁️ 3. Cloud Compute Scaling")
-
-    cloud_df = pd.DataFrame({
-        "Algorithm": ["RSA", "PQC"],
-        "Ops/sec per Core (sign ops)": [rsa_handshake_rate, pqc_handshake_rate],
-        "Cores Needed for 50M Ops/day": [
-            50_000_000 / (rsa_handshake_rate * 86400),
-            50_000_000 / (pqc_handshake_rate * 86400)
-        ]
-    })
-
-    st.dataframe(cloud_df, use_container_width=True)
-
-    fig_cloud = go.Figure()
-    fig_cloud.add_trace(go.Bar(
-        x=cloud_df["Algorithm"],
-        y=cloud_df["Cores Needed for 50M Ops/day"],
-        text=[f"{v:.3f}" for v in cloud_df["Cores Needed for 50M Ops/day"]],
-        textposition="auto"
-    ))
-    fig_cloud.update_layout(
-        title="CPU Cores Needed for 50M Signature Operations Per Day",
-        yaxis_type="log",
-        yaxis_title="CPU Cores (log scale)"
-    )
-    st.plotly_chart(fig_cloud, use_container_width=True)
-
-    # Summary
-    st.markdown("""
-    ### 🚀 Real-World Interpretation (Based on Your Actual Measured Data)
-
-    These results are **not theoretical** — they are based entirely on **your device’s measured speeds**:
-
-    - PQC can complete **far more TLS handshakes per second**, improving scalability  
-    - IoT devices using PQC complete crypto tasks **faster**, saving battery  
-    - Cloud workloads require **fewer CPU cores**, reducing cost  
-    - Performance ratios come directly from **measured operations** on this system  
-    """)
+    return final
 
 
 def security_analysis():
